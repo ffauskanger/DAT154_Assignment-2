@@ -180,6 +180,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             
             // Drawing instructions
 
+
+
             // Roads
 
             // Get size later from WM_size to set it properly.
