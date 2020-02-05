@@ -1,9 +1,13 @@
 // Assignment2.cpp : Defines the entry point for the application.
 //
-
 #include "framework.h"
 #include "Assignment2.h"
 #include "Draw.h"
+#include <list>
+#include "Car.h"
+
+using namespace std;
+
 
 #define MAX_LOADSTRING 100
 
@@ -13,14 +17,20 @@
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
-int state = 0;
+int eastState = 0;
 int southState = 2;
+list <Car> northList;
+list <Car> westList;
+list <Car> eastList;
+list <Car> southList;
+
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -132,6 +142,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    // States for traffic lights
     bool state1[] = { true, false, false }; // red
     bool state2[] = { true, true, false }; // red and yellow
     bool state3[] = { false, false, true }; // green
@@ -144,7 +155,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     states[2] = state3;
     states[3] = state4;
 
-    static int cxClient, cyClient;
+    int rpn = 0;
+    int rpw = 0;
+
+    int pw = 50;
+    int pn = 50;
+
+    // Size
+    RECT rect;
+    GetWindowRect(hWnd, &rect);
         
     switch (message)
     {
@@ -167,11 +186,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_CREATE:
-        SetTimer(hWnd, TIMER_TRAFFIC, 2000, (TIMERPROC)NULL);
-        break;
-    case WM_SIZE:
-        cxClient = LOWORD(lParam); // x size
-        cyClient = HIWORD(lParam); // y size
+        SetTimer(hWnd, TIMER_TRAFFIC, 3000, (TIMERPROC)NULL);
+        SetTimer(hWnd, TIMER_RANDOM_SPAWN, 1000, (TIMERPROC)NULL);
+        SetTimer(hWnd, TIMER_CAR, 100, (TIMERPROC)NULL);
         break;
     case WM_PAINT:
         {
@@ -181,17 +198,43 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             // Drawing instructions
 
 
-
             // Roads
 
-            // Get size later from WM_size to set it properly.
-            road(hdc, 0, 300, cxClient, true); // false = north/south, true = west/east
-            road(hdc, 700, 0, cyClient, false); // false = north/south, true = west/east
+
+            roads(hdc, rect);
 
             // Traffic lights
-            trafficlight(hdc, 500, 200, states[state]);
-            trafficlight(hdc, cxClient / 2 + 50, cyClient / 2, states[southState]);
+            // East + West
+            trafficlight(hdc, 750, 550, states[eastState]);
+            trafficlight(hdc, 1100, 230, states[eastState]);
 
+
+            // South + North
+            trafficlight(hdc, 750, 230, states[southState]);
+            trafficlight(hdc, 1100, 550, states[southState]);
+
+
+            // Cars
+
+            for (Car car : westList)
+            {
+                car.Draw(hdc);
+            }
+
+            for (Car car : eastList)
+            {
+                car.Draw(hdc);
+            }
+
+            for (Car car : northList)
+            {
+                car.Draw(hdc);
+            }
+
+            for (Car car : southList)
+            {
+                car.Draw(hdc);
+            }
 
             EndPaint(hWnd, &ps);
         }
@@ -200,21 +243,124 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         PostQuitMessage(0); 
         break;
     case WM_LBUTTONDOWN:
+    {
 
+        westList.push_back(*(new Car(true, false, 0, 500)));
+        eastList.push_back(*(new Car(true, true, 1600, 400)));
+        northList.push_back(*(new Car(false, false, 900, 0)));
+        southList.push_back(*(new Car(false, true, 980, 900)));
+        InvalidateRect(hWnd, NULL, true);
+        break;
 
-
+        // Part 2: Traffic light change state
         //if (state == 0) state = 1; else if(state == 1) state = 2; else if(state == 2) state = 3; else state = 0;
         //if (southState == 0) southState = 1; else if (southState == 1) southState = 2; else if (southState == 2) southState = 3; else southState = 0;
         //InvalidateRect(hWnd, NULL, true);
+    }
+    case WM_RBUTTONDOWN:
+    {
         break;
+    }
+
+   case WM_KEYDOWN:
+    {
+       switch (wParam)
+       {
+       case VK_LEFT:
+           pw -= 10;
+           break;
+       case VK_RIGHT:
+           pw += 10;
+           break;
+       case VK_UP:
+           pn += 10;
+           break;
+       case VK_DOWN:
+           pn -= 10;
+           break;
+       }
+    }
+    
+
     case WM_TIMER:
+
+
         switch (wParam)
         {
+        case TIMER_RANDOM_SPAWN:
+        {
+            rpn = rand() % 100;
+            rpw = rand() % 100;
+
+
+            if (rpn > pn)
+            {
+                northList.push_back(*(new Car(false, false, 900, 0)));
+                southList.push_back(*(new Car(false, true, 980, 900)));
+            }
+
+            if (rpw > pw)
+            {
+                westList.push_back(*(new Car(true, false, 0, 500)));
+                eastList.push_back(*(new Car(true, true, 1500, 400)));
+            }
+            InvalidateRect(hWnd, NULL, true);
+            break;
+        }
         case TIMER_TRAFFIC:
-            if (state == 0) state = 1; else if (state == 1) state = 2; else if (state == 2) state = 3; else state = 0;
+        {
+            // Setting states for traffic lights
+            if (eastState == 0) eastState = 1; else if (eastState == 1) eastState = 2; else if (eastState == 2) eastState = 3; else eastState = 0;
             if (southState == 0) southState = 1; else if (southState == 1) southState = 2; else if (southState == 2) southState = 3; else southState = 0;
             InvalidateRect(hWnd, NULL, true);
             break;
+        }
+        case TIMER_CAR:
+        {
+            int lastWest = 50000;
+            for (Car& c : westList)
+            {
+                if ((eastState == 2 || (c.getX() < 800 || c.getX() > 801)) && c.getX() < (lastWest - 50))
+                {
+                    c.Move();
+                }
+                lastWest = c.getX();
+            }
+
+            int lastEast = -50000;
+            for (Car& c : eastList)
+            {
+                if ((eastState == 2 || (c.getX() < 1100 || c.getX() > 1101) && c.getX() > lastEast + 50))
+                {
+                    c.Move();
+                }
+                lastEast = c.getX();
+            }
+
+            int lastNorth = 50000;
+            for (Car& c : northList)
+            {
+                if ((southState == 2 || (c.getY() < 300 || c.getY() > 301) && c.getY() < lastNorth - 50))
+                {
+                    c.Move();
+                }
+                lastNorth = c.getY();
+            }
+
+
+            int lastSouth = -50000;
+            for (Car& c : southList)
+            {
+                if ((southState == 2 || (c.getY() < 550 || c.getY() > 551) && c.getY() > lastSouth + 50))
+                {
+                    c.Move();
+                }
+                lastSouth = c.getY();
+            }
+
+            InvalidateRect(hWnd, NULL, true);
+            break;
+        }
         default: break;
         }
     default:

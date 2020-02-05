@@ -1,11 +1,10 @@
 // Needed includes
 #include "Draw.h"
 
+// Colors
 enum color { red = RGB(255, 0, 0), yellow = RGB(255, 255, 0), green = RGB(0, 255, 0), gray = RGB(211, 211, 211), black = RGB(0,0,0) };
 
-// Functions (add in header!!!)
-
-// Draw traffic light
+// Part 1: Draw traffic light
 void trafficlight(HDC hdc, int x, int y, bool state[])
 {
 	// size
@@ -75,62 +74,61 @@ void trafficlight(HDC hdc, int x, int y, bool state[])
 }
 
 // Draw roads
-void road(HDC hdc, int x, int y, int length, bool dir) // dir = 0, north-south, 1 = west-east
+void roads(HDC hdc, RECT rect)
 {
-	// Size
-	int width = 40;
 
-	// Road - left, top, right, bottom
-
+	// Init
 	int left = 0;
 	int top = 0;
 	int right = 0;
 	int bottom = 0;
-
-	if (dir)
-	{
-		left = x;
-		top = y;
-		right = x + length;
-		bottom = y + width;
-	}
-	else
-	{
-		left = x;
-		top = y;
-		right = x + width;
-		bottom = y + length;
-	}
-
-
+	
+	// Middle
 
 	HBRUSH hb = CreateSolidBrush(gray);
 	HGDIOBJ h = SelectObject(hdc, hb);
 
+	// Draw West - East Road
+	left = rect.right; // Length
+	top = 350; // Top starting
+	right = 0; // Starting point
+	bottom = 550; // Bottom starting
+
 	Rectangle(hdc, left, top, right, bottom);
 
+	left = 850; // Left starting
+	top = 0; // Top starting
+	right = 1050; // Right ending
+	bottom = rect.bottom; // Length
+
+	Rectangle(hdc, left, top, right, bottom);
+
+	// Lines
+	MoveToEx(hdc, 850, 350, NULL);
+	LineTo(hdc, 1050, 350);
+
+	MoveToEx(hdc, 850, 550, NULL);
+	LineTo(hdc, 1050, 550);
+
+
+	HPEN hPen = CreatePen(PS_DASH, 2, yellow);
+	HGDIOBJ holdPen = SelectObject(hdc, hPen);
+	
+	MoveToEx(hdc, 0, 450, NULL);
+	LineTo(hdc, 850, 450);
+
+	MoveToEx(hdc, 1050, 450, NULL);
+	LineTo(hdc, rect.right, 450);
+
+	MoveToEx(hdc, 950, 0, NULL);
+	LineTo(hdc, 950, 350);
+
+	MoveToEx(hdc, 950, 550, NULL);
+	LineTo(hdc, 950, rect.bottom);
+
+	SelectObject(hdc, holdPen);
+	DeleteObject(hPen);
 	SelectObject(hdc, h);
 	DeleteObject(hb);
 }
-
-
-
-
-
-
-// Draw car
-
-
-// Start
-// Red
-// Red + Yellow
-// Green
-// Yellow 
-// ... Back to top
-
-
-// Two roads (add later!)
-
-
-
 

@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Assignment2.h" />
+    <ClInclude Include="Car.h" />
     <ClInclude Include="Draw.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Resource.h" />
@@ -155,6 +156,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Assignment2.cpp" />
+    <ClCompile Include="Car.cpp" />
     <ClCompile Include="Draw.cpp" />
   </ItemGroup>
   <ItemGroup>
